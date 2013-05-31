@@ -17,7 +17,6 @@ from plone.memoize import forever
 from plone.registry.interfaces import IRegistry
 from Products.CMFPlone.utils import getToolByName
 from browser.settings import IImioDmsMailConfig
-from collective.contact.plonegroup.browser.settings import selectedOrganizationsPloneGroupsVocabulary
 from z3c.form.browser.select import SelectFieldWidget
 
 from . import _
@@ -70,18 +69,64 @@ class IImioDmsIncomingMail(IDmsIncomingMail):
     directives.widget(treating_groups=SelectFieldWidget)
 
 
+@forever.memoize
+def getTreatingGroups():
+    """
+        sub method of TreatingGroupsVocabulary, separated to be memoized.
+        Returns a vocabulary of treating groups
+    """
+    portal = getSite()
+    terms = []
+    pcat = portal.portal_catalog
+    directory = portal.contacts
+    brains = pcat(path={"query": '/'.join(directory.getPhysicalPath()), "depth": 1}, id="own-organization")
+    if not brains:
+        return SimpleVocabulary(terms)
+    own_orga = brains[0].getObject()
+    brains = pcat(path={"query": '/'.join(own_orga.getPhysicalPath()), "depth": 1}, portal_type="organization",
+                  sort_on="getObjPositionInParent")
+    for brain in brains:
+        dep = brain.getObject()
+        services_brains = pcat(path={"query": '/'.join(dep.getPhysicalPath()), "depth": 1},
+                               portal_type="organization", sort_on="getObjPositionInParent")
+        if not services_brains:
+            terms.append(SimpleTerm(dep.Title(), token=brain.id, title=dep.Title()))
+        for service_brain in services_brains:
+            comb = "%s - %s" % (dep.Title(), service_brain.Title)
+            terms.append(SimpleTerm(comb, token="%s-%s" % (brain.id, service_brain.id), title=comb))
+    return SimpleVocabulary(terms)
+
+
 class TreatingGroupsVocabulary(object):
     implements(IVocabularyFactory)
 
     def __call__(self, context):
-        return selectedOrganizationsPloneGroupsVocabulary(functions=['editeur'], group_title=False)
+        # Temporary commented
+        #acl_users = getToolByName(context, 'acl_users')
+        #terms = []
+        #for gd in acl_users.searchGroups():
+        #    if gd['pluginid'] == 'auto_group':
+        #        continue
+        #    if gd['groupid'].endswith('_editeurs'):
+        #        terms.append(SimpleVocabulary.createTerm(gd['groupid'], gd['groupid'], gd['title'].split()[0]))
+        #return SimpleVocabulary(terms)
+        #terms = [SimpleTerm(None, token='', title=_("Choose a value !"))]
+        #portal = getToolByName(context, 'portal_url').getPortalObject()
+        return getTreatingGroups()
 
 
 class RecipientGroupsVocabulary(object):
     implements(IVocabularyFactory)
 
     def __call__(self, context):
-        return selectedOrganizationsPloneGroupsVocabulary(functions=['lecteur'], group_title=False)
+        acl_users = getToolByName(context, 'acl_users')
+        terms = []
+        for gd in acl_users.searchGroups():
+            if gd['pluginid'] == 'auto_group':
+                continue
+            if gd['groupid'].endswith('_lecteurs'):
+                terms.append(SimpleVocabulary.createTerm(gd['groupid'], gd['groupid'], gd['title'].split()[0]))
+        return SimpleVocabulary(terms)
 
 
 class ImioDmsIncomingMailSchemaPolicy(DexteritySchemaPolicy):

@@ -25,9 +25,9 @@
     <p i18n:translate="">No incoming mail !</p>
   </tal:nothing>
   <tal:services tal:repeat="service python:sorted(results.keys())">
-    <h2 tal:content="python: results[service]['title']" />
+    <h2 tal:content="service" />
     <ul>
-      <tal:mail repeat="mail python:results[service]['mails']">
+      <tal:mail repeat="mail python:results[service]">
         <li tal:content="python:mail[0]"></li>
       </tal:mail>
     </ul>

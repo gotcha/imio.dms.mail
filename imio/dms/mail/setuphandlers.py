@@ -22,9 +22,8 @@ from zope.i18n.interfaces import ITranslationDomain
 from zope.intid.interfaces import IIntIds
 from z3c.relationfield.relation import RelationValue
 from plone.i18n.normalizer.interfaces import IIDNormalizer
-#from plone.portlets.constants import CONTEXT_CATEGORY
+from plone.portlets.constants import CONTEXT_CATEGORY
 from plone.registry.interfaces import IRegistry
-from collective.contact.plonegroup.config import FUNCTIONS_REGISTRY, ORGANIZATIONS_REGISTRY
 from collective.dms.mailcontent.dmsmail import internalReferenceIncomingMailDefaultValue, receptionDateDefaultValue
 from collective.dms.mailcontent.dmsmail import internalReferenceOutgoingMailDefaultValue, mailDateDefaultValue
 logger = logging.getLogger('imio.dms.mail: setuphandlers')
@@ -160,8 +159,8 @@ def configureBatchImport(context):
         registry['collective.dms.batchimport.batchimport.ISettings.processed_fs_root_directory'] = os.path.join(
                                                                                 productpath, u'batchimport/processed')
     if not registry.get('collective.dms.batchimport.batchimport.ISettings.code_to_type_mapping'):
-        registry['collective.dms.batchimport.batchimport.ISettings.code_to_type_mapping'] = [{'code': u'in',
-                                                                                    'portal_type': u'dmsincomingmail'}]
+        registry['collective.dms.batchimport.batchimport.ISettings.code_to_type_mapping'] = [{'code':u'in',
+                                                                                    'portal_type':u'dmsincomingmail'}]
 
 
 def configureImioDmsMail(context):
@@ -178,36 +177,7 @@ def configureImioDmsMail(context):
             {'mt_value': u'Courrier', 'mt_title': u'Courrier', 'mt_active': True},
             {'mt_value': u'Facture', 'mt_title': u'Facture', 'mt_active': True},
             {'mt_value': u'Retour recommandé', 'mt_title': u'Retour recommandé', 'mt_active': True},
-        ]
-
-
-def configureContactPloneGroup(context):
-    """
-        Add french test contact plonegroup configuration
-    """
-    if not context.readDataFile("imiodmsmail_data_marker.txt"):
-        return
-    logger.info('Configure contact plonegroup')
-    registry = getUtility(IRegistry)
-    site = context.getSite()
-    if not registry.get(ORGANIZATIONS_REGISTRY):
-        contacts = site['contacts']
-        own_orga = contacts['plonegroup-organization']
-        departments = own_orga.listFolderContents(contentFilter={'portal_type': 'organization'})
-        services0 = own_orga[departments[0].id].listFolderContents(contentFilter={'portal_type': 'organization'})
-        services2 = own_orga[departments[2].id].listFolderContents(contentFilter={'portal_type': 'organization'})
-        registry[ORGANIZATIONS_REGISTRY] = [
-            services0[0].UID(),
-            services0[1].UID(),
-            departments[1].UID(),
-            services2[0].UID(),
-        ]
-    if not registry.get(FUNCTIONS_REGISTRY):
-        registry[FUNCTIONS_REGISTRY] = [
-            {'fct_title': u'Encodeur', 'fct_id': u'encodeur'},
-            {'fct_title': u'Lecteur', 'fct_id': u'lecteur'},
-            {'fct_title': u'Éditeur', 'fct_id': u'editeur'},
-        ]
+            ]
 
 
 def addTestDirectory(context):
@@ -466,6 +436,23 @@ def addTestUsersAndGroups(context):
     if not context.readDataFile("imiodmsmail_data_marker.txt"):
         return
     site = context.getSite()
+    logger.info('Adding test groups')
+
+    services = (
+        ('secretariat', u"Secrétariat général"),
+        ('service-personnel', "Service du personnel"),
+        ('marches-publics', u"Marchés publics"),
+        ('comptabilite', u"Comptabilité"),
+        ('social', u"Social"),
+        ('mediation-de-dettes', u"Médiation de dettes"),
+        ('insertion-socio-professionnelle', u"Insertion socio-professionnelle"),
+        ('informatique', u"Informatique"),
+    )
+    # creating groups
+    for gid, gname in services:
+        for suffix, name in (('lecteurs', 'lecteurs'), ('editeurs', u'éditeurs'), ('validateurs', 'validateurs')):
+            site.portal_groups.addGroup("%s_%s" % (gid, suffix), title="%s (%s)" % (gname, name))
+            #site.portal_groups.setRolesForGroup(id, ('Reader',))
 
     # creating users
     is_mountpoint = len(site.absolute_url_path().split('/')) > 2
@@ -474,9 +461,9 @@ def addTestUsersAndGroups(context):
         return ''.join(random.choice(string.ascii_letters + string.digits) for x in range(length))
 
     users = {
-        ('picsou', u'Jean Picsou'): [],
-        ('binaire', u'Jean Binaire'): [],
-        ('accueil', u'Jeanne Accueil'): [],
+        ('picsou', u'Jean Picsou'): ('comptabilite_lecteurs', 'comptabilite_editeurs',),
+        ('binaire', u'Jean Binaire'): ('informatique_lecteurs', 'informatique_editeurs',),
+        ('accueil', u'Jeanne Accueil'): ('secretariat_lecteurs', 'secretariat_editeurs',),
     }
     password = 'dmsmail'
     if is_mountpoint:
@@ -501,8 +488,8 @@ def addOwnOrganization(context):
     site = context.getSite()
     contacts = site['contacts']
 
-    if hasattr(contacts, 'plonegroup-organization'):
-        logger.warn('Nothing done: plonegroup-organization already exists. You must first delete it to reimport!')
+    if hasattr(contacts, 'own-organization'):
+        logger.warn('Nothing done: own-organization already exists. You must first delete it to reimport!')
         return
 
     # Organisations creation (in directory)
@@ -513,8 +500,8 @@ def addOwnOrganization(context):
               'street': u'Rue de la commune',
               'number': u'1',
               }
-    contacts.invokeFactory('organization', 'plonegroup-organization', **params)
-    own_orga = contacts['plonegroup-organization']
+    contacts.invokeFactory('organization', 'own-organization', **params)
+    own_orga = contacts['own-organization']
 
     # Departments and services creation
     sublevels = [
@@ -532,12 +519,12 @@ def addOwnOrganization(context):
         (u'Département informatique', []),
         (u'Département des Finances', [u'Gestion Financière', u'Cellule Financière', u'Receveur', u'Homes Extérieurs',
                                        u'Avances et Récupérations', u'Assurances']),
-    ]
+        ]
     idnormalizer = queryUtility(IIDNormalizer)
     for (department, services) in sublevels:
         id = own_orga.invokeFactory('organization', idnormalizer.normalize(department),
-                                    **{'title': department, 'organization_type': u'department'})
+                                        **{'title': department, 'organization_type': u'department'})
         dep = own_orga[id]
         for service in services:
             dep.invokeFactory('organization', idnormalizer.normalize(service),
-                              **{'title': service, 'organization_type': u'service'})
+                                        **{'title': service, 'organization_type': u'service'})

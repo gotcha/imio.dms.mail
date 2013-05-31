@@ -48,7 +48,6 @@ setup(name='imio.dms.mail',
           'collective.dms.mailcontent',
           'collective.dms.batchimport',
           'collective.contact.core',
-          'collective.contact.plonegroup',
           'collective.task',
           # -*- Extra requirements: -*-
       ],

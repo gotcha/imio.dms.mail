@@ -38,14 +38,6 @@ Add batch import configuration for test purpose
 Add french configuration for imio.dms.mail
 </import-step>
 <import-step
-            id="imiodmsmail-configureContactPloneGroup"
-            handler="imio.dms.mail.setuphandlers.configureContactPloneGroup"
-            title="Add french configuration for collective.contact.plonegroup"
-            version="2013-05-29T15:00:00.00000">
-           <dependency step="imiodmsmail-addOwnOrganization"/>
-Add french configuration for collective.contact.plonegroup
-</import-step>
-<import-step
             id="imiodmsmail-addOwnOrganization"
             handler="imio.dms.mail.setuphandlers.addOwnOrganization"
             title="Add test own organization for imio.dms.mail"

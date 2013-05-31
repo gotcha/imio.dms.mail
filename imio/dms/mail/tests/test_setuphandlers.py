@@ -76,8 +76,12 @@ class TestSetuphandlers(unittest.TestCase):
     def test_addTestUsersAndGroups(self):
         #checking groups
         acl_users = getToolByName(self.portal, 'acl_users')
-        lecteurs = [gd for gd in acl_users.searchGroups() if gd['groupid'].endswith('_lecteur')]
-        self.assertEquals(len(lecteurs), 4)
+        lecteurs = [gd for gd in acl_users.searchGroups() if gd['groupid'].endswith('_lecteurs')]
+        self.assertEquals(len(lecteurs), 8)
+        editeurs = [gd for gd in acl_users.searchGroups() if gd['groupid'].endswith('_editeurs')]
+        self.assertEquals(len(editeurs), 8)
+        validateurs = [gd for gd in acl_users.searchGroups() if gd['groupid'].endswith('_validateurs')]
+        self.assertEquals(len(validateurs), 8)
         #checking users
         mt = getToolByName(self.portal, 'portal_membership')
         users = [member for member in mt.listMembers()

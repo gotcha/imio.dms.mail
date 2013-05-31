@@ -1,5 +1,4 @@
 from zope.i18n import translate
-from plone.api import group
 from Products.CMFCore.utils import getToolByName
 from Products.Five import BrowserView
 from DateTime import DateTime
@@ -39,13 +38,8 @@ class ListingView(BrowserView):
                 continue
             for tg in obj.treating_groups:
                 if not tg in results:
-                    results[tg] = {'mails': []}
-                    title = tg
-                    tgroup = group.get(tg)
-                    if tgroup is not None:
-                        title = tgroup.getProperty('title')
-                    results[tg]['title'] = title
-                results[tg]['mails'].append([brain.Title])
+                    results[tg] = []
+                results[tg].append([brain.Title])
         for service in results.keys():
-            results[service]['mails'].sort()
+            results[service].sort()
         return results

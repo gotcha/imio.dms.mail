@@ -40,7 +40,7 @@ class TestPortlets(unittest.TestCase):
                                         manager, portlets.Assignment()), IPortletRenderer)
         self.assertTrue(mail_renderer.canAddMainFile())
         self.assertEquals(renderer.getIncomingMailAddUrl(), 'http://nohost/plone/incoming-mail/++add++dmsincomingmail')
-        self.assertEquals(mail_renderer.getMainFileAddUrl(), 'http://nohost/plone/incoming-mail/courrier1/++add++dmsmainfile')
+        self.assertEquals(mail_renderer.getMainFileAddUrl(), 'http://nohost/plone/incoming-mail/courrier1/++add++dmsmailfile')
 
     def test_renderer_methods_as_member(self):
         setRoles(self.portal, TEST_USER_ID, ['Member'])

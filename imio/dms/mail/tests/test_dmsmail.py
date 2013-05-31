@@ -24,17 +24,19 @@ class TestDmsmail(unittest.TestCase):
 
     def test_TreatingGroupsVocabulary(self):
         from imio.dms.mail.dmsmail import TreatingGroupsVocabulary
+        #imail = self.portal['incoming-mail']['courrier1']
         voc_inst = TreatingGroupsVocabulary()
         voc_dic = voc_inst(self.portal).by_token
-        self.assertEquals(len(voc_dic), 4)
-        self.assertEquals(len([id for id in voc_dic.keys() if id.endswith('_editeur')]), 4)
+        #voc_list = [(voc_dic[key].value, voc_dic[key].title) for key in voc_dic.keys()]
+        self.assertEquals(len(voc_dic), 38)
+        #self.assertEquals(len([id for id in voc_dic.keys() if id.endswith('_editeurs')]), 8)
 
     def test_RecipientGroupsVocabulary(self):
         from imio.dms.mail.dmsmail import RecipientGroupsVocabulary
         voc_inst = RecipientGroupsVocabulary()
         voc_dic = voc_inst(self.portal).by_token
-        self.assertEquals(len(voc_dic), 4)
-        self.assertEquals(len([id for id in voc_dic.keys() if id.endswith('_lecteur')]), 4)
+        self.assertEquals(len(voc_dic), 8)
+        self.assertEquals(len([id for id in voc_dic.keys() if id.endswith('_lecteurs')]), 8)
 
     def test_Title(self):
         imail1 = self.portal['incoming-mail']['courrier1']
