@@ -12,8 +12,7 @@ class DmsIMActionsPanelView(ActionsPanelView):
 
     def __init__(self, context, request):
         super(DmsIMActionsPanelView, self).__init__(context, request)
-        self.SECTIONS_TO_RENDER += (
-            'renderReplyButton', 'renderCreateFromTemplateButton')
+        self.SECTIONS_TO_RENDER += ('renderReplyButton', )
 
     def mayReply(self):
         """
@@ -32,10 +31,6 @@ class DmsIMActionsPanelView(ActionsPanelView):
     def sortTransitions(self, lst):
         """ Sort transitions following transitions list order"""
         lst.sort(lambda x, y: cmp(self.tr_order[x['id']], self.tr_order[y['id']]))
-
-    def renderCreateFromTemplateButton(self):
-        return ViewPageTemplateFile(
-            "templates/actions_panel_create_from_template.pt")(self)
 
 
 class DmsIMActionsPanelViewlet(ActionsPanelViewlet):

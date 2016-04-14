@@ -6,12 +6,12 @@ from zope.interface import implements
 
 from Products.CMFPlone.browser.ploneview import Plone
 from Products.Five import BrowserView
-from plone import api
 
 from imio.helpers.fancytree.views import BaseRenderFancyTree
 from eea.faceted.vocabularies.autocomplete import IAutocompleteSuggest
 
-from imio.dms.mail import _
+from .. import _
+from ..setuphandlers import _
 
 
 class PloneView(Plone):
@@ -25,22 +25,15 @@ class PloneView(Plone):
         return True
 
 
-class CreateFromTemplateForm(BaseRenderFancyTree):
+class ChooseDocumentTemplateForm(BaseRenderFancyTree):
 
-    """Create a document from a collective.documentgenerator template."""
-
-    def label(self):
-        return translate(
-            _(u"${title}: create from template",
-              mapping={'title': self.context.Title()}),
-            context=self.request)
+    """Form to choose a collective.documentgenerator template."""
 
     def get_action_name(self):
         return translate(_("Choose this template"), context=self.request)
 
     def get_query(self):
-        portal = api.portal.get()
-        path = '/'.join(portal.getPhysicalPath()) + '/models'
+        path = '/'.join(self.context.getPhysicalPath()) + '/models'
         return {
             'path': {'query': path, 'depth': -1},
             'portal_type': (
@@ -54,12 +47,12 @@ class CreateFromTemplateForm(BaseRenderFancyTree):
 
     def redirect_url(self, uid):
         """Redirect to document generation from selected template."""
-        url = self.context.absolute_url()
+        portal_url = self.context.absolute_url()
         params = [
             "template_uid={}".format(uid),
             "output_format=odt",
         ]
-        return  "{}/document-generation?{}".format(url, "&".join(params))
+        return  "{}/document-generation?{}".format(portal_url, "&".join(params))
 
 
 def parse_query(text):
